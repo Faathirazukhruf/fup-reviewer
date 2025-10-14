@@ -8,12 +8,12 @@ export default function DeptPage() {
   const { id } = useParams<{ id: string }>();
   const [db, setDb] = useState<DB>();
 
-  // form create
+  // create form
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [date, setDate] = useState("");
 
-  // form edit
+  // edit form
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editUrl, setEditUrl] = useState("");
@@ -25,7 +25,7 @@ export default function DeptPage() {
     if (!db) return [];
     return db.documents
       .filter(d => d.deptId === id)
-      .sort((a,b)=> new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [db, id]);
 
   /** CREATE */
@@ -38,7 +38,7 @@ export default function DeptPage() {
       deptId: id,
       title: t,
       fileUrl: url.trim() || undefined,
-      createdAt: date || nowISO(),
+      createdAt: date || nowISO()
     };
 
     const next: DB = { ...db, documents: [nextDoc, ...db.documents] };
@@ -51,47 +51,38 @@ export default function DeptPage() {
     setEditingId(d.id);
     setEditTitle(d.title);
     setEditUrl(d.fileUrl || "");
-    // jika createdAt ISO, ambil YYYY-MM-DD
-    const ymd = (d.createdAt || "").slice(0,10);
-    setEditDate(ymd);
+    setEditDate((d.createdAt || "").slice(0, 10));
   };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditTitle(""); setEditUrl(""); setEditDate("");
-  };
-
+  const cancelEdit = () => { setEditingId(null); setEditTitle(""); setEditUrl(""); setEditDate(""); };
   const saveEdit = () => {
     if (!db || !editingId) return;
     const next: DB = {
       ...db,
-      documents: db.documents.map((doc: Doc) =>
+      documents: db.documents.map(doc =>
         doc.id === editingId
           ? {
               ...doc,
               title: editTitle.trim() || doc.title,
               fileUrl: editUrl.trim() || undefined,
-              createdAt: editDate || doc.createdAt,
+              createdAt: editDate || doc.createdAt
             }
           : doc
-      ),
+      )
     };
     saveDB(next); setDb(next); cancelEdit();
   };
 
-  /** DELETE (sekalian hapus sheet & comments) */
+  /** DELETE (remove sheet + comments too) */
   const removeDoc = (docId: string) => {
     if (!db) return;
     if (!confirm("Hapus dokumen ini? (sheet & komentar juga akan dihapus)")) return;
-
     const next: DB = {
       ...db,
-      documents: db.documents.filter((d: Doc) => d.id !== docId),
+      documents: db.documents.filter(d => d.id !== docId),
       comments: db.comments.filter(c => c.docId !== docId),
-      sheets: { ...db.sheets },
+      sheets: { ...db.sheets }
     };
     delete next.sheets[docId];
-
     saveDB(next); setDb(next);
     if (editingId === docId) cancelEdit();
   };
@@ -99,7 +90,7 @@ export default function DeptPage() {
   /** IMPORT CSV */
   const importCSV = async (file: File, docId: string) => {
     const text = await file.text();
-    const lines = text.split(/\r?\n/).filter(l=>l.length);
+    const lines = text.split(/\r?\n/).filter(l => l.length);
     const rows = lines.map(l => l.split(",").map(x => x.trim()));
     const headers = rows.shift() || [];
     const next = { ...db! };
@@ -115,27 +106,14 @@ export default function DeptPage() {
       <Link href="/" className="small">← Kembali</Link>
       <h2>Dokumen • {id}</h2>
 
-      {/* CREATE FORM */}
+      {/* CREATE */}
       <div className="grid">
-        <input
-          value={title}
-          onChange={(e)=>setTitle(e.target.value)}
-          placeholder="Judul dokumen (mis. Protap 700-019)"
-        />
+        <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Judul dokumen (mis. Protap 700-019)" />
         <div className="grid2">
-          <input
-            value={url}
-            onChange={(e)=>setUrl(e.target.value)}
-            placeholder="(Opsional) Link PDF/Drive/GSheet"
-          />
-          <input
-            type="date"
-            value={date}
-            onChange={(e)=>setDate(e.target.value)}
-            placeholder="Tanggal dokumen"
-          />
+          <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="(Opsional) Link PDF/Drive/GSheet" />
+          <input type="date" value={date} onChange={e=>setDate(e.target.value)} placeholder="Tanggal dokumen" />
         </div>
-        <button className="btn" onClick={addDoc}>Simpan</button>
+        <button className="btn btn--primary" onClick={addDoc}>Simpan</button>
       </div>
 
       <hr />
@@ -148,53 +126,41 @@ export default function DeptPage() {
             <div key={d.id} className="item">
               {!isEditing ? (
                 <>
-                  <div className="row">
+                  <div className="item__header">
                     <div>
-                      <div style={{fontWeight:700}}>{d.title}</div>
-                      <div className="small">
-                        Tanggal: {new Date(d.createdAt).toLocaleString()}
-                      </div>
+                      <div className="item__title">{d.title}</div>
+                      <div className="item__meta">Tanggal: {new Date(d.createdAt).toLocaleString()}</div>
                     </div>
-                    <div className="spacer" />
-                    {d.fileUrl && <a className="badge" target="_blank" href={d.fileUrl}>Open File</a>}
-                    <Link className="btn" href={`/doc/${d.id}`}>Review</Link>
-                    <button className="btn-ghost" onClick={()=>startEdit(d)}>Edit</button>
-                    <button className="btn-danger" onClick={()=>removeDoc(d.id)}>Delete</button>
+                    <div className="actions actions--right">
+                      {d.fileUrl && <a className="btn btn--secondary btn--sm" target="_blank" href={d.fileUrl}>Open File</a>}
+                      <Link className="btn btn--primary btn--sm" href={`/doc/${d.id}`}>Review</Link>
+                      <button className="btn btn--secondary btn--sm" onClick={()=>startEdit(d)}>Edit</button>
+                      <button className="btn btn--danger btn--sm" onClick={()=>removeDoc(d.id)}>Delete</button>
+                    </div>
                   </div>
 
-                  <div className="row" style={{marginTop:8}}>
-                    <span className="small">Import CSV ke dokumen ini: </span>
-                    <input type="file" accept=".csv" onChange={e=>{
-                      const f = e.target.files?.[0]; if(!f) return;
-                      importCSV(f, d.id);
-                      e.currentTarget.value = "";
-                    }} />
+                  <div className="row" style={{marginTop:10}}>
+                    <span className="small">Import CSV ke dokumen ini:</span>
+                    <label className="input-file">
+                      <input type="file" accept=".csv" onChange={e=>{
+                        const f = e.target.files?.[0]; if(!f) return;
+                        importCSV(f, d.id);
+                        (e.currentTarget as HTMLInputElement).value = "";
+                      }} />
+                      <span>Pilih file…</span>
+                    </label>
                   </div>
                 </>
               ) : (
-                // EDIT FORM (inline)
                 <div className="grid">
-                  <input
-                    value={editTitle}
-                    onChange={e=>setEditTitle(e.target.value)}
-                    placeholder="Judul dokumen"
-                  />
+                  <input value={editTitle} onChange={e=>setEditTitle(e.target.value)} placeholder="Judul dokumen" />
                   <div className="grid2">
-                    <input
-                      value={editUrl}
-                      onChange={e=>setEditUrl(e.target.value)}
-                      placeholder="(Opsional) Link PDF/Drive/GSheet"
-                    />
-                    <input
-                      type="date"
-                      value={editDate}
-                      onChange={e=>setEditDate(e.target.value)}
-                    />
+                    <input value={editUrl} onChange={e=>setEditUrl(e.target.value)} placeholder="(Opsional) Link PDF/Drive/GSheet" />
+                    <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} />
                   </div>
-                  <div className="row">
-                    <button className="btn" onClick={saveEdit}>Simpan Perubahan</button>
-                    <div className="spacer" />
-                    <button className="btn-ghost" onClick={cancelEdit}>Batal</button>
+                  <div className="actions">
+                    <button className="btn btn--primary" onClick={saveEdit}>Simpan Perubahan</button>
+                    <button className="btn btn--secondary" onClick={cancelEdit}>Batal</button>
                   </div>
                 </div>
               )}

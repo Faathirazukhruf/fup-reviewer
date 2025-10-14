@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DB, loadDB, saveDB, nowISO, uid, CellComment } from "../../../../lib/storage";
+import { DB, loadDB, saveDB, nowISO, uid, CellComment } from "@/lib/storage";
 
 export default function DocPage(){
   const { id } = useParams<{id:string}>();
@@ -34,8 +34,8 @@ export default function DocPage(){
       comment: comment.trim(),
       reviewer: reviewer.trim() || undefined,
       status: "Open",
-      createdAt: nowISO(),
-    } as const;
+      createdAt: nowISO()
+    };
     const next = { ...db, comments: [payload, ...db.comments] };
     saveDB(next); setDb(next); setComment(""); setReviewer("");
   };
@@ -52,7 +52,7 @@ export default function DocPage(){
     <div>
       <Link href={`/dept/${doc.deptId}`} className="small">← Kembali</Link>
       <h2>{doc.title}</h2>
-      {!!doc.fileUrl && <a className="badge" target="_blank" href={doc.fileUrl}>Open File</a>}
+      {!!doc.fileUrl && <a className="btn btn--secondary btn--sm" style={{marginTop:6}} target="_blank" href={doc.fileUrl}>Open File</a>}
 
       {!sheet && (
         <>
@@ -83,8 +83,11 @@ export default function DocPage(){
                       const val = row[cIdx] ?? "";
                       const sel = selected && selected.row===rIdx && selected.col===cIdx;
                       return (
-                        <td key={cIdx} className="cell" style={{background: sel ? "#172a52" : undefined}}
-                            onClick={()=> setSelected({row:rIdx, col:cIdx})}>
+                        <td
+                          key={cIdx}
+                          className={`cell ${sel ? "selected" : ""}`}
+                          onClick={()=> setSelected({row:rIdx, col:cIdx})}
+                        >
                           {val || <span className="small" style={{opacity:.6}}>-</span>}
                           {cellHasOpen(rIdx,cIdx) && <span className="dot" title="Open comments" />}
                         </td>
@@ -107,10 +110,8 @@ export default function DocPage(){
               <input placeholder="Nama/Email (opsional)" value={reviewer} onChange={e=>setReviewer(e.target.value)} />
             </div>
             <textarea placeholder="Tulis komentar…" value={comment} onChange={e=>setComment(e.target.value)} />
-            <div className="row">
-              <button className="btn-ok" onClick={addComment}>Kirim</button>
-              <div className="spacer" />
-              <span className="small">Status default: Open</span>
+            <div className="actions">
+              <button className="btn btn--success" onClick={addComment}>Kirim</button>
             </div>
           </div>
 
@@ -124,12 +125,14 @@ export default function DocPage(){
                   {new Date(c.createdAt).toLocaleString()} • {c.reviewer||"—"} • Row {c.row+1}, Col {c.col+1} {c.field?`(${c.field})`:""}
                 </div>
                 <div style={{margin:"6px 0"}}><b>{c.comment}</b></div>
-                <div className="row">
-                  <span className="badge" style={{borderColor: c.status==="Open"?"#e26043":"#1fa95c", background:"#0f1a33", color: c.status==="Open"?"#ffa29a":"#9dffbd"}}>
-                    {c.status}
-                  </span>
-                  <div className="spacer" />
-                  <button className="btn" onClick={()=>toggleStatus(c.id)}>{c.status==="Open"?"Mark Resolved":"Reopen"}</button>
+                <div className="actions">
+                  <span className="badge" style={{
+                    borderColor: c.status==="Open"?"#ff9e9e":"#61e1a1",
+                    color: c.status==="Open"?"#ff9e9e":"#61e1a1"
+                  }}>{c.status}</span>
+                  <button className="btn btn--secondary btn--sm" onClick={()=>toggleStatus(c.id)}>
+                    {c.status==="Open"?"Mark Resolved":"Reopen"}
+                  </button>
                 </div>
               </div>
             ))}
