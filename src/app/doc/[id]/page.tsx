@@ -42,8 +42,16 @@ export default function DocPage(){
 
   const toggleStatus = (cid: string) => {
     if (!db) return;
-    const next = { ...db, comments: db.comments.map(c => c.id===cid ? {...c, status: c.status==="Open"?"Resolved":"Open"} : c) };
-    saveDB(next); setDb(next);
+    const next = { 
+      ...db, 
+      comments: db.comments.map(c => 
+        c.id === cid 
+          ? { ...c, status: (c.status === "Open" ? "Resolved" : "Open") as "Open" | "Resolved" } 
+          : c
+      ) 
+    };
+    saveDB(next); 
+    setDb(next);
   };
 
   if (!db || !doc) return null;
