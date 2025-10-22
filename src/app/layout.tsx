@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="wrap">
           <div className="card">
-            <h1>FUP Reviewer (Teh jeje punya anjayyy)</h1>
+            <h1>FUP Reviewer</h1>
             {children}
           </div>
         </div>
