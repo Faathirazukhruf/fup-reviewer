@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+type FileRow = {
+  b64: string;
+  mime: string;
+  name: string;
+  file_size: number | null;
+};
 
-  const rows = await sql/*sql*/`
-    select
-      encode(file_data,'base64') as b64,
-      coalesce(file_mime,'application/octet-stream') as mime,
-      coalesce(file_name,'file.bin') as name,
-      file_size
-    from documents
-    where id=${id} and file_data is not null
-    limit 1
-  ` as any[];
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
+  const rows = (await sql/*sql*/`
+    select encode(file_data, 'base64') as b64,
+           coalesce(file_mime,'application/octet-stream') as mime,
+           coalesce(file_name,'file.bin') as name,
+           file_size
+      from documents
+     where id=${id} and file_data is not null
+     limit 1
+  `) as FileRow[];
 
   if (!rows.length) return new NextResponse("File not found", { status: 404 });
 

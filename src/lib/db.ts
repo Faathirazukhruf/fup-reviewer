@@ -1,5 +1,7 @@
-// Neon client (serverless Postgres)
 import { neon } from "@neondatabase/serverless";
 
-// pastikan DATABASE_URL ada di .env.local / vercel env
-export const sql = neon(process.env.DATABASE_URL!);
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not set");
+}
+
+export const sql = neon(process.env.DATABASE_URL);

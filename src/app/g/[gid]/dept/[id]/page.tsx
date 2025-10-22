@@ -1,18 +1,19 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { createDocument, deleteDocument, listDocuments, updateDocument } from "@/app/actions";
+import { createDocument, deleteDocument, listDocuments, updateDocument, DocumentRow } from "@/app/actions";
 
-function toDate(v: any) {
-  const d = v ? new Date(v) : null;
-  return d && !isNaN(d.getTime()) ? d : null;
+function toDate(v: string | Date | null | undefined): Date | null {
+  if (!v) return null;
+  const d = v instanceof Date ? v : new Date(v);
+  return isNaN(d.getTime()) ? null : d;
 }
-function toYMD(v: any) {
+function toYMD(v: string | Date | null | undefined): string {
   const d = toDate(v);
   return d ? d.toISOString().slice(0, 10) : "";
 }
-function toLocal(v: any) {
+function toLocal(v: string | Date | null | undefined): string {
   const d = toDate(v);
   return d ? d.toLocaleString() : "-";
 }
@@ -22,7 +23,7 @@ export default function DeptPage() {
   const deptId = id;
   const groupId = gid;
 
-  const [docs, setDocs] = useState<any[]>([]);
+  const [docs, setDocs] = useState<DocumentRow[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -30,14 +31,16 @@ export default function DeptPage() {
   const [dueDate, setDueDate] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function refresh() {
-    setDocs(await listDocuments(deptId, groupId));
-  }
-  useEffect(() => {
-    refresh();
+  const refresh = useCallback(async () => {
+    const list = await listDocuments(deptId, groupId);
+    setDocs(list);
   }, [deptId, groupId]);
 
-  function startEdit(d: any) {
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  function startEdit(d: DocumentRow) {
     setEditing(d.id);
     setTitle(d.title || "");
     setFileUrl(d.file_url || "");
@@ -70,13 +73,13 @@ export default function DeptPage() {
     setDate("");
     setDueDate("");
     if (fileRef.current) fileRef.current.value = "";
-    await refresh();
+    void refresh();
   }
 
   async function onDelete(docId: string) {
     if (!confirm("Hapus dokumen ini?")) return;
     await deleteDocument(docId, deptId, groupId);
-    await refresh();
+    void refresh();
   }
 
   return (
@@ -85,9 +88,11 @@ export default function DeptPage() {
         <Link href={`/g/${groupId}`} className="small">
           ← Kembali
         </Link>
-        <h2>Dokumen • {deptId} • {groupId}</h2>
+        <h2>
+          Dokumen • {deptId} • {groupId}
+        </h2>
 
-        {/* === FORM INPUT === */}
+        {/* FORM */}
         <div className="grid" style={{ marginBottom: 16 }}>
           <input
             placeholder="Judul dokumen"
@@ -101,7 +106,6 @@ export default function DeptPage() {
               value={fileUrl}
               onChange={(e) => setFileUrl(e.target.value)}
             />
-
             <div style={{ display: "flex", flexDirection: "column" }}>
               <label className="small" style={{ marginBottom: 4 }}>
                 Tanggal Dibuat
@@ -116,7 +120,6 @@ export default function DeptPage() {
 
           <div className="grid2">
             <input type="file" ref={fileRef} accept=".xls,.xlsx,.pdf" />
-
             <div style={{ display: "flex", flexDirection: "column" }}>
               <label className="small" style={{ marginBottom: 4 }}>
                 Due Date
@@ -153,18 +156,17 @@ export default function DeptPage() {
 
         <hr />
 
-        {/* === LIST DOKUMEN === */}
+        {/* LIST */}
         <div className="list">
           {docs.map((d) => {
-            const overdue =
-              d.due_date && new Date(d.due_date) < new Date();
+            const overdue = !!(d.due_date && new Date(d.due_date) < new Date());
             return (
               <div key={d.id} className="item">
                 <div className="item__header">
                   <div>
                     <div className="item__title">{d.title}</div>
                     <div className="item__meta">
-                      Dibuat: {toLocal(d.created_at)}{" "}
+                      Dibuat: {toLocal(d.created_at)}
                       {d.due_date && (
                         <>
                           {" • "}Tenggat:{" "}

@@ -1,51 +1,54 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
+  addDepartment,
+  deleteDepartment,
   listDepartments,
   listYears,
-  addDepartment,
   updateDepartment,
-  deleteDepartment,
+  Department,
 } from "@/app/actions";
 
 export default function GroupDepartmentsPage() {
   const { gid } = useParams<{ gid: string }>();
 
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<Department[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [filterYear, setFilterYear] = useState<number | null>(null);
 
-  // form tambah
   const [name, setName] = useState("");
   const [year, setYear] = useState("");
 
-  // form edit
   const [editId, setEditId] = useState<string | null>(null);
   const [eName, setEName] = useState("");
   const [eYear, setEYear] = useState("");
 
-  async function refresh(y?: number | null) {
-    setItems(await listDepartments(y ?? filterYear));
-    setYears((await listYears()).map((x) => x.year));
-  }
-  useEffect(() => {
-    refresh(null);
-  }, []);
-  useEffect(() => {
-    refresh(filterYear);
+  const refresh = useCallback(async (y?: number | null) => {
+    const ys = await listYears();
+    setYears(ys.map((r) => r.year));
+    const list = await listDepartments(y ?? filterYear);
+    setItems(list);
   }, [filterYear]);
+
+  useEffect(() => {
+    void refresh(null);
+  }, [refresh]);
+
+  useEffect(() => {
+    void refresh(filterYear);
+  }, [filterYear, refresh]);
 
   async function onAdd() {
     if (!name.trim()) return;
     await addDepartment(name.trim(), year ? Number(year) : null);
     setName("");
     setYear("");
-    refresh(filterYear);
+    void refresh(filterYear);
   }
 
-  function startEdit(d: any) {
+  function startEdit(d: Department) {
     setEditId(d.id);
     setEName(d.name);
     setEYear(d.year?.toString() ?? "");
@@ -60,13 +63,13 @@ export default function GroupDepartmentsPage() {
     fd.set("active", "true");
     await updateDepartment(fd);
     setEditId(null);
-    refresh(filterYear);
+    void refresh(filterYear);
   }
 
   async function onDelete(id: string) {
     if (!confirm("Nonaktifkan departemen ini?")) return;
     await deleteDepartment(id);
-    refresh(filterYear);
+    void refresh(filterYear);
   }
 
   return (
@@ -77,13 +80,10 @@ export default function GroupDepartmentsPage() {
         </Link>
         <h2>Departemen • {gid}</h2>
 
-        {/* Filter Tahun */}
         <div className="row" style={{ marginBottom: 12 }}>
           <select
             value={filterYear ?? ""}
-            onChange={(e) =>
-              setFilterYear(e.target.value ? Number(e.target.value) : null)
-            }
+            onChange={(e) => setFilterYear(e.target.value ? Number(e.target.value) : null)}
           >
             <option value="">Semua Tahun</option>
             {years.map((y) => (
@@ -95,7 +95,6 @@ export default function GroupDepartmentsPage() {
           <div className="small">Filter departemen berdasarkan tahun.</div>
         </div>
 
-        {/* Tambah Departemen */}
         <div className="row" style={{ marginBottom: 10 }}>
           <input
             placeholder="Nama Departemen (mis. QA)"
@@ -115,7 +114,6 @@ export default function GroupDepartmentsPage() {
 
         <hr />
 
-        {/* List Departemen */}
         <div className="list">
           {items.map((d) => {
             const isEdit = editId === d.id;
@@ -176,9 +174,7 @@ export default function GroupDepartmentsPage() {
               </div>
             );
           })}
-          {!items.length && (
-            <div className="small">Belum ada departemen aktif.</div>
-          )}
+          {!items.length && <div className="small">Belum ada departemen aktif.</div>}
         </div>
       </div>
     </div>
