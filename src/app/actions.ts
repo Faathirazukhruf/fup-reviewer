@@ -386,15 +386,26 @@ export async function setDocumentDueDate(fd: FormData) {
    Typing disediakan kalau kamu sudah punya fungsi ini.
    Kalau belum, hapus import di page yang tidak dipakai. */
 
-export async function addComment(_fd: FormData) {
-  // isi sesuai implementasi kamu sebelumnya
+export async function addComment(fd: FormData) {
+  // Implementation placeholder
+  console.log('addComment called with:', fd);
+  return { success: true };
 }
-export async function listComments(_docId: string): Promise<CommentRow[]> {
+
+export async function listComments(docId: string): Promise<CommentRow[]> {
+  // Implementation placeholder
+  console.log('listComments called for docId:', docId);
   return [];
 }
-export async function toggleComment(_commentId: string, _docId: string) {
-  // isi sesuai implementasi kamu sebelumnya
+
+export async function toggleComment(commentId: string, docId: string) {
+  // Implementation placeholder
+  console.log('toggleComment called with:', { commentId, docId });
+  return { success: true };
 }
-export async function getSheet(_docId: string): Promise<{ headers: string[]; rows: string[][] }> {
+
+export async function getSheet(docId: string): Promise<{ headers: string[]; rows: string[][] }> {
+  // Implementation placeholder
+  console.log('getSheet called for docId:', docId);
   return { headers: [], rows: [] };
 }

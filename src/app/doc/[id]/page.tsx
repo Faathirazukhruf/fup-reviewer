@@ -49,6 +49,7 @@ export default function DocPage() {
     due_date: string | null;
   } | null>(null);
 
+  // Initialize sheet with empty data
   const [sheet, setSheet] = useState<Sheet>({ headers: [], rows: [] });
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [sel, setSel] = useState<{ row: number; col: number } | null>(null);
@@ -62,8 +63,14 @@ export default function DocPage() {
     const m = await getDocumentMeta(id);
     setMeta(m);
     setEditDue(toYMD(m?.due_date));
-    // Kalau kamu punya getSheet, panggil di sini:
-    // setSheet(await getSheet(id));
+    // Load sheet data if needed
+    try {
+      // Uncomment and implement if you have a getSheet function
+      // const sheetData = await getSheet(id);
+      // setSheet(sheetData);
+    } catch (error) {
+      console.error('Error loading sheet:', error);
+    }
     setComments(await listComments(id));
   }, [id]);
 
