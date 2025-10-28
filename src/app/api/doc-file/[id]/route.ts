@@ -10,9 +10,9 @@ type FileRow = {
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const { id } = context.params;
   const rows = (await sql/*sql*/`
     select encode(file_data, 'base64') as b64,
            coalesce(file_mime,'application/octet-stream') as mime,
