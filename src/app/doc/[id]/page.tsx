@@ -50,7 +50,7 @@ export default function DocPage() {
   } | null>(null);
 
   // Initialize sheet with empty data
-  const [sheet, setSheet] = useState<Sheet>({ headers: [], rows: [] });
+  const [sheet] = useState<Sheet>({ headers: [], rows: [] });
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [sel, setSel] = useState<{ row: number; col: number } | null>(null);
   const [field, setField] = useState("");

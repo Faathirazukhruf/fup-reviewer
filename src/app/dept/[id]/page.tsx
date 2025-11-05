@@ -1,20 +1,32 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   createDocument, deleteDocument, listDocuments, updateDocument
 } from "@/app/actions";
+import { DocumentType } from "@/types/document";
 
-function toDate(v:any){ const d = v ? new Date(v) : null; return (d && !isNaN(d.getTime()))? d : null; }
-function toYMD(v:any){ const d=toDate(v); return d? d.toISOString().slice(0,10): ""; }
-function toLocal(v:any){ const d=toDate(v); return d? d.toLocaleString(): "-"; }
+function toDate(v: string | Date | null | undefined): Date | null { 
+  const d = v ? new Date(v) : null; 
+  return (d && !isNaN(d.getTime())) ? d : null; 
+}
+
+function toYMD(v: string | Date | null | undefined): string { 
+  const d = toDate(v); 
+  return d ? d.toISOString().slice(0,10) : ""; 
+}
+
+function toLocal(v: string | Date | null | undefined): string { 
+  const d = toDate(v); 
+  return d ? d.toLocaleString() : "-"; 
+}
 
 export default function DeptPage(){
   const { id } = useParams<{id:string}>();
   const deptId = id;
 
-  const [docs, setDocs] = useState<any[]>([]);
+  const [docs, setDocs] = useState<DocumentType[]>([]);
   // create/edit form
   const [editing, setEditing] = useState<string|null>(null);
   const [title, setTitle] = useState("");
@@ -23,15 +35,36 @@ export default function DeptPage(){
   const [dueDate, setDueDate] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function refresh(){ setDocs(await listDocuments(deptId)); }
-  useEffect(()=>{ refresh(); },[deptId]);
+  const refresh = useCallback(async () => {
+    try {
+      const documents = await listDocuments(deptId);
+      // Convert DocumentRow[] to DocumentType[] with proper type assertions
+      const typedDocs: DocumentType[] = documents.map((doc: any) => ({
+        id: doc.id,
+        title: doc.title || '',
+        file_url: doc.file_url ?? null,
+        created_at: doc.created_at ?? null,
+        updated_at: doc.updated_at ?? null,
+        due_date: doc.due_date ?? null,
+        has_file: doc.has_file ?? false
+      }));
+      setDocs(typedDocs);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      setDocs([]);
+    }
+  }, [deptId]);
 
-  function startEdit(d:any){
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  function startEdit(d: DocumentType) {
     setEditing(d.id);
     setTitle(d.title || "");
     setFileUrl(d.file_url || "");
-    setDate(toYMD(d.created_at));
-    setDueDate(toYMD(d.due_date));
+    setDate(d.created_at ? toYMD(d.created_at) : "");
+    setDueDate(d.due_date ? toYMD(d.due_date) : "");
     if (fileRef.current) fileRef.current.value = "";
   }
 
