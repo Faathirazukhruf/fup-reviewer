@@ -197,7 +197,7 @@ export default function DeptPage() {
                         <>
                           {" • "}
                           <a
-                            href={`/api/doc-file/${d.id}`}
+                            href={`/api/doc-file/get-file?id=${d.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import type { NextRequest } from 'next/server';
 
 type FileRow = {
   b64: string;
@@ -8,10 +9,16 @@ type FileRow = {
   file_size: number | null;
 };
 
-export async function GET(
-  _req: Request,
-  context: { params: { id: string } }
-) {
+type RouteParams = {
+  params: {
+    id: string;
+  };
+};
+
+export const GET = async (
+  request: NextRequest,
+  context: RouteParams
+) => {
   const { id } = context.params;
   const rows = (await sql/*sql*/`
     select encode(file_data, 'base64') as b64,
@@ -33,5 +40,8 @@ export async function GET(
   if (file_size) headers.set("Content-Length", String(file_size));
   headers.set("Cache-Control", "private, max-age=0, must-revalidate");
 
-  return new NextResponse(buf, { status: 200, headers });
+  return new NextResponse(buf, { 
+    status: 200, 
+    headers: Object.fromEntries(headers.entries()) 
+  });
 }

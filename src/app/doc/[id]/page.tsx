@@ -148,7 +148,7 @@ export default function DocPage() {
               {meta?.has_file && (
                 <>
                   {" • "}
-                  <a href={`/api/doc-file/${id}`} target="_blank" rel="noreferrer">
+                  <a href={`/api/doc-file/get-file?id=${id}`} target="_blank" rel="noreferrer">
                     Open File
                   </a>
                 </>

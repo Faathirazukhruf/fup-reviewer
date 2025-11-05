@@ -97,7 +97,7 @@ export default function DeptPage(){
                 </div>
                 <div className="actions actions--right">
                   {d.has_file
-                    ? <a className="btn small" href={`/api/doc-file/${d.id}`} target="_blank">Open File</a>
+                    ? <a className="btn small" href={`/api/doc-file/get-file?id=${d.id}`} target="_blank">Open File</a>
                     : (d.file_url && <a className="btn small" href={d.file_url} target="_blank">Open Link</a>)
                   }
                   <button className="btn small" style={{background:"#ff9bff", color:"#000"}} onClick={()=>startEdit(d)}>Edit</button>
