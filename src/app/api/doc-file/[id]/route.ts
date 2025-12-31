@@ -9,17 +9,11 @@ type FileRow = {
   file_size: number | null;
 };
 
-type RouteParams = {
-  params: {
-    id: string;
-  };
-};
-
-export const GET = async (
+export async function GET(
   request: NextRequest,
-  context: RouteParams
-) => {
-  const { id } = context.params;
+  context: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  const { id } = await context.params;
   const rows = (await sql/*sql*/`
     select encode(file_data, 'base64') as b64,
            coalesce(file_mime,'application/octet-stream') as mime,
@@ -30,18 +24,19 @@ export const GET = async (
      limit 1
   `) as FileRow[];
 
-  if (!rows.length) return new NextResponse("File not found", { status: 404 });
+  if (!rows.length) return new Response("File not found", { status: 404 });
 
   const { b64, mime, name, file_size } = rows[0];
   const buf = Buffer.from(b64, "base64");
+  
   const headers = new Headers();
   headers.set("Content-Type", mime);
   headers.set("Content-Disposition", `inline; filename="${encodeURIComponent(name)}"`);
   if (file_size) headers.set("Content-Length", String(file_size));
   headers.set("Cache-Control", "private, max-age=0, must-revalidate");
 
-  return new NextResponse(buf, { 
-    status: 200, 
-    headers: Object.fromEntries(headers.entries()) 
+  return new Response(buf, { 
+    status: 200,
+    headers: headers
   });
 }

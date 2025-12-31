@@ -9,17 +9,12 @@ type FileRow = {
   file_size: number | null;
 };
 
-type RouteParams = {
-  params: {
-    id: string;
-  };
-};
-
 export async function GET(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { params } = context;
+  const { id } = params;
   
   try {
     const rows = (await sql/*sql*/`

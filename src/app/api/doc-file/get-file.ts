@@ -10,12 +10,11 @@ type FileRow = {
 };
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  
+
   if (!id) {
     return new NextResponse("ID is required", { status: 400 });
   }
@@ -43,9 +42,9 @@ export async function GET(
     if (file_size) headers.set("Content-Length", String(file_size));
     headers.set("Cache-Control", "private, max-age=0, must-revalidate");
 
-    return new NextResponse(buf, { 
-      status: 200, 
-      headers: Object.fromEntries(headers.entries()) 
+    return new NextResponse(buf, {
+      status: 200,
+      headers: Object.fromEntries(headers.entries())
     });
   } catch (error) {
     console.error('Error fetching file:', error);

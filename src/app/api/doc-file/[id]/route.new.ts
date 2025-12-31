@@ -4,17 +4,16 @@ import type { NextRequest } from 'next/server';
 
 type FileRow = {
   b64: string;
-  mime: string;
+  mime: string; 
   name: string;
   file_size: number | null;
 };
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
-  
+  const { id } = await context.params;
   try {
     const rows = (await sql/*sql*/`
       select encode(file_data, 'base64') as b64,
